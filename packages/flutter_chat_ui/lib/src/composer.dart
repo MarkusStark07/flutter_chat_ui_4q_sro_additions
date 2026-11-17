@@ -1,3 +1,50 @@
+/*
+ *
+ *
+ *
+ *
+ *  * Created by Marek Gajdoš (marek.gajdos@4q.sk)
+ *
+ *  * Copyright (c) 2025
+ *
+ *  * 4Q s.r.o. All rights reserved.
+ *
+ *  * http://www.4q.eu
+ *
+ *  *
+ *
+ *  * Redistribution and use in source and binary forms, with or without
+ *
+ *  * modification, are not permitted.
+ *
+ *  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *
+ *  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *
+ *  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *
+ *  * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *
+ *  * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *
+ *  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES INCLUDING,
+ *
+ *  * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *
+ *  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *
+ *  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *
+ *  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *
+ *  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *
+ *  * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ *
+ */
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -139,6 +186,25 @@ class Composer extends StatefulWidget {
   /// Configuration for content insertion (e.g., images, gifs, stickers) into the text field.
   final ContentInsertionConfiguration? contentInsertionConfiguration;
 
+  /// Icon for the speech to text when its enabled. Defaults to [Icons.mic]
+  final IconData? speechToTextIconMicrophoneEnabled;
+
+  /// Icon for the speech to text when its disabled. Defaults to [Icons.mic_off]
+  final IconData? speechToTextIconMicrophoneDisabled;
+
+  /// Color for enabled microphone icon
+  final Color? speechToTextColorMicrophoneEnabled;
+
+  /// Color for disabled microphone icon
+  final Color? speechToTextColorMicrophoneDisabled;
+
+  /// Bool value for indicating Listening stage of speech to text API.
+  /// (API is meant to be used externally, this only controls the UI)
+  final bool? speechToTextIsListening;
+
+  /// Logic that should be executed when listening is active.
+  final Function? speechToTextLogic;
+
   /// Creates a message composer widget.
   const Composer({
     super.key,
@@ -184,6 +250,12 @@ class Composer extends StatefulWidget {
     this.sendButtonHidden = false,
     this.inputClearMode = InputClearMode.always,
     this.contentInsertionConfiguration,
+    this.speechToTextIconMicrophoneEnabled = Icons.mic,
+    this.speechToTextIconMicrophoneDisabled = Icons.mic_off,
+    this.speechToTextColorMicrophoneEnabled,
+    this.speechToTextColorMicrophoneDisabled,
+    this.speechToTextIsListening,
+    this.speechToTextLogic,
   });
 
   @override
@@ -313,6 +385,32 @@ class _ComposerState extends State<Composer> {
                           widget.inputFillColor ??
                           theme.surfaceContainerHigh.withValues(alpha: 0.8),
                       hoverColor: Colors.transparent,
+                      suffixIcon: widget.speechToTextLogic != null
+                          ? StatefulBuilder(
+                          builder: (context, setState) {
+                            var isListening = widget.speechToTextIsListening!;
+                            return IconButton(
+                              icon: Icon(
+                                  widget.speechToTextIconMicrophoneDisabled,
+                                  color: widget
+                                      .speechToTextColorMicrophoneDisabled ??
+                                      theme.onSurface.withValues(alpha: 0.5)),
+                              selectedIcon: Icon(
+                                  widget.speechToTextIconMicrophoneEnabled,
+                                  color: widget
+                                      .speechToTextColorMicrophoneEnabled ??
+                                      theme.onSurface),
+                              isSelected: isListening,
+                              onPressed: () {
+                                widget.speechToTextLogic!();
+                                setState(() {
+                                  isListening = !isListening;
+                                });
+                              },
+                            );
+                          }
+                      )
+                          : null,
                     ),
                     style: theme.bodyMedium.copyWith(
                       color: widget.textColor ?? theme.onSurface,
